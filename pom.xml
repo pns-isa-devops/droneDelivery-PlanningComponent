@@ -33,6 +33,23 @@
     <versions.shrinkwrap>2.2.6</versions.shrinkwrap>
   </properties>
 
+  <distributionManagement>
+    <repository>
+      <id>central</id>
+      <name>team-d-releases</name>
+      <url>http://teamd-isadevops.francecentral.cloudapp.azure.com:8081/artifactory/libs-release-local</url>
+      <!--<url>http://localhost:8081/artifactory/libs-release-local</url>-->
+
+    </repository>
+
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>team-d-snapshots</name>
+      <url>http://teamd-isadevops.francecentral.cloudapp.azure.com:8081/artifactory/libs-snapshot-local</url>
+      <!--<url>http://localhost:8081/artifactory/libs-snapshot-local</url>-->
+    </snapshotRepository>
+  </distributionManagement>
+
   <build>
     <plugins>
       <plugin>
