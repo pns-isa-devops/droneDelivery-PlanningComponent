@@ -55,7 +55,7 @@ public class AvailableSlotTest extends AbstractPlanningTest {
         entityManager.persist(provider);
 
         aPackage.setWeight(10.0);
-        aPackage.setSecret_number(2000);
+        aPackage.setSecret_number("2000");
         aPackage.setProvider(provider);
         entityManager.persist(aPackage);
         provider.add(aPackage);
@@ -77,7 +77,7 @@ public class AvailableSlotTest extends AbstractPlanningTest {
         entityManager.persist(delivery2);
 
 
-        aPackageDemanded.setSecret_number(2020);
+        aPackageDemanded.setSecret_number("2020");
         aPackageDemanded.setProvider(provider);
         aPackageDemanded.setWeight(30.0);
         provider.add(aPackageDemanded);

@@ -49,7 +49,7 @@ public class RegisterDeliveryTest extends AbstractPlanningTest {
         entityManager.persist(provider);
 
         aPackage.setWeight(10.0);
-        aPackage.setSecret_number(2005);
+        aPackage.setSecret_number("2005");
         aPackage.setProvider(provider);
         entityManager.persist(aPackage);
         provider.add(aPackage);

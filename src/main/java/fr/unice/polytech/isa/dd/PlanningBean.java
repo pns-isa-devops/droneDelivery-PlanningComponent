@@ -32,12 +32,10 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
 
     @Override
     public void register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws Exception {
-
-        int number = Integer.parseInt(number_secret);
         Customer customer = findCustomerByName(name_client);
         MyDate dt = new MyDate(delivery_date,hour_delivery);
         Delivery delivery = new Delivery();
-        Package aPackage = findPackageByNumber(number);
+        Package aPackage = findPackageByNumber(number_secret);
         assert aPackage != null;
         delivery.setPackageDelivered(aPackage);
         delivery.setDeliveryDate(delivery_date);
@@ -50,7 +48,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
 
     }
 
-    private Package findPackageByNumber(int number) {
+    private Package findPackageByNumber(String number) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Package> criteria = builder.createQuery(Package.class);
         Root<Package> root =  criteria.from(Package.class);
