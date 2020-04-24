@@ -14,7 +14,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +45,18 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
             entityManager.persist(delivery);
         }else throw  new Exception("Slot nont disponible");
 
+    }
+
+    @Override
+    public void repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws Exception {
+        if(validslot){
+            Delivery delivery = deliverySchedule.findDeliveryByPackageNumber(old_date, old_hour);
+            MyDate myDate = new MyDate(delivery_date,hour_delivery);
+            Delivery d =  entityManager.find(Delivery.class,delivery.getId());
+            d.setDeliveryDate(delivery_date);
+            d.setDeliveryBeginTimeInSeconds(myDate.getDate_seconds());
+            entityManager.persist(d);
+        }else throw  new Exception("Slot nont disponible");
     }
 
     private Package findPackageByNumber(String number) {
@@ -91,27 +102,35 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
         MyDate adate = new MyDate(delivery_date,hour_delivery);
         int min_slot = 45 * 60;
         int adateseconds = adate.getDate_seconds();
-        int minb = 0; int index_min = 0; int mine = 0;
-        int max = 0; int index_max;
-        //int min = sorted_filtered_list.get(0).getDeliveryBeginTimeInSeconds();
-        //assert sorted_filtered_list != null;
-        if(sorted_filtered_list != null && !sorted_filtered_list.isEmpty()){
-            while(index_min < sorted_filtered_list.size() ) {
-                int temp = sorted_filtered_list.get(index_min).getDeliveryBeginTimeInSeconds();
-                if (temp < adateseconds) {
-                    mine = sorted_filtered_list.get(index_min).getDeliveryEndTimeInSeconds();
-                }else break;
-                index_min++;
-            }
-            max = sorted_filtered_list.get(index_min).getDeliveryBeginTimeInSeconds();
+        int index_min = 0; int mine = 0;
+        int max = 0;
+        if(sorted_filtered_list != null && !sorted_filtered_list.isEmpty()) {
+            int size = sorted_filtered_list.size();
+            boolean is_the_smallest = adateseconds < sorted_filtered_list.get(0).getDeliveryBeginTimeInSeconds();
+            boolean is_the_biggest = adateseconds > sorted_filtered_list.get(size-1).getDeliveryBeginTimeInSeconds();
+            if (is_the_smallest) {
+                int temp = sorted_filtered_list.get(0).getDeliveryBeginTimeInSeconds();
+                int end = adateseconds + min_slot;
+                return (end - temp) >= min_slot;
+            } else if (is_the_biggest) {
+                int temp = sorted_filtered_list.get(size-1).getDeliveryEndTimeInSeconds();
+                return (adateseconds - temp) >= min_slot;
+            } else {
+                while (index_min < sorted_filtered_list.size()) {
+                    int temp = sorted_filtered_list.get(index_min).getDeliveryBeginTimeInSeconds();
+                    if (temp < adateseconds) {
+                        mine = sorted_filtered_list.get(index_min).getDeliveryEndTimeInSeconds();
+                    } else break;
+                    index_min++;
+                }
+                max = sorted_filtered_list.get(index_min).getDeliveryBeginTimeInSeconds();
 
-            int diff1 =  adateseconds - mine;
-            int diff2 =  max - (adateseconds + min_slot );
-       /* System.out.println("/*********************************\n"+diff1+"******************\n");
-        System.out.println("/*********************************\n"+diff2+"******************\n");*/
-            if(diff1 >= min_slot && diff2 >= min_slot){
-                validslot = true;
-                return true;
+                int diff1 = adateseconds - mine;
+                int diff2 = max - (adateseconds + min_slot);
+                if (diff1 >= min_slot && diff2 >= min_slot) {
+                    validslot = true;
+                    return true;
+                }
             }
         }else{
             validslot = true;
