@@ -5,9 +5,9 @@ pipeline {
         jdk 'JDK8'
     }
     stages {
-        stage ('Build') {
+        stage ('Build and Deploy') {
             steps {
-                sh 'mvn clean package'
+                sh 'mvn clean package deploy'
             }
         }
     }
