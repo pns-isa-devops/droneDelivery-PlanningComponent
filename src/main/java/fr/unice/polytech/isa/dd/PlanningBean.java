@@ -33,7 +33,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     private boolean validslot = false;
 
     @Override
-    public void register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws Exception {
+    public String register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws Exception {
         Customer customer = customerFinder.findCustomerByName(name_client);
         Package aPackage = packageFinder.findPackageBySecretNumber(number_secret);
         MyDate dt = new MyDate(delivery_date,hour_delivery);
@@ -42,11 +42,11 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
             customer.add_a_customer_delivery(delivery);
             entityManager.persist(delivery);
         }else throw  new UnvailableSlotTimeException(delivery_date,hour_delivery);
-
+        return "Livraison Programmé";
     }
 
     @Override
-    public void repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws Exception {
+    public String repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws Exception {
         if(validslot){
             Delivery delivery = deliverySchedule.findDeliveryByDateAndHour(old_date, old_hour);
             MyDate myDate = new MyDate(delivery_date,hour_delivery);
@@ -55,10 +55,11 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
             delivery1.setDeliveryBeginTimeInSeconds(myDate.getDate_seconds());
             entityManager.persist(delivery1);
         }else throw  new UnvailableSlotTimeException(delivery_date,hour_delivery);
+        return "La livraison a été reprogrammé !";
     }
 
     @Override
-    public boolean valid_slot_time(String delivery_date, String hour_delivery) throws Exception {
+    public Boolean valid_slot_time(String delivery_date, String hour_delivery) throws Exception {
         List<Delivery> sorted_filtered_list = deliverySchedule.all_deliveries_of_theDate(delivery_date);
         int adateseconds = new MyDate(delivery_date,hour_delivery).getDate_seconds();
         int min_slot = 45 * 60;
