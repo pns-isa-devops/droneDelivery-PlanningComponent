@@ -1,5 +1,6 @@
 package fr.unice.polytech.isa.dd;
 
+import fr.unice.polytech.isa.dd.Exceptions.UnvailableSlotTimeException;
 import fr.unice.polytech.isa.dd.entities.Customer;
 import fr.unice.polytech.isa.dd.entities.Delivery;
 import fr.unice.polytech.isa.dd.entities.Package;
@@ -26,88 +27,47 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     private EntityManager entityManager;
 
     @EJB(name = "delivery-stateless") private DeliverySchedule deliverySchedule;
+    @EJB(name = "package-stateless") private PackageFinder packageFinder;
+    @EJB(name = "customer-stateless") private CustomerFinder customerFinder;
 
     private boolean validslot = false;
 
     @Override
     public void register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws Exception {
-        Customer customer = findCustomerByName(name_client);
+        Customer customer = customerFinder.findCustomerByName(name_client);
+        Package aPackage = packageFinder.findPackageBySecretNumber(number_secret);
         MyDate dt = new MyDate(delivery_date,hour_delivery);
-        Delivery delivery = new Delivery();
-        Package aPackage = findPackageByNumber(number_secret);
-        assert aPackage != null;
-        delivery.setPackageDelivered(aPackage);
-        delivery.setDeliveryDate(delivery_date);
-        delivery.setDeliveryBeginTimeInSeconds(dt.getDate_seconds());
-        assert customer != null;
+        Delivery delivery = new Delivery(customer,aPackage,delivery_date,dt.getDate_seconds());
         if(validslot){
             customer.add_a_customer_delivery(delivery);
             entityManager.persist(delivery);
-        }else throw  new Exception("Slot nont disponible");
+        }else throw  new UnvailableSlotTimeException(delivery_date,hour_delivery);
 
     }
 
     @Override
     public void repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws Exception {
         if(validslot){
-            Delivery delivery = deliverySchedule.findDeliveryByPackageNumber(old_date, old_hour);
+            Delivery delivery = deliverySchedule.findDeliveryByDateAndHour(old_date, old_hour);
             MyDate myDate = new MyDate(delivery_date,hour_delivery);
-            Delivery d =  entityManager.find(Delivery.class,delivery.getId());
-            d.setDeliveryDate(delivery_date);
-            d.setDeliveryBeginTimeInSeconds(myDate.getDate_seconds());
-            entityManager.persist(d);
-        }else throw  new Exception("Slot nont disponible");
-    }
-
-    private Package findPackageByNumber(String number) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Package> criteria = builder.createQuery(Package.class);
-        Root<Package> root =  criteria.from(Package.class);
-        criteria.select(root).where(builder.equal(root.get("secretNumber"), number));
-        TypedQuery<Package> query = entityManager.createQuery(criteria);
-        try {
-           return Optional.of(query.getSingleResult()).get();
-        } catch (NoResultException nre){
-            return null;
-        }
-    }
-
-    private Customer findCustomerByName(String name) {
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Customer> criteria = builder.createQuery(Customer.class);
-        Root<Customer> root =  criteria.from(Customer.class);
-        criteria.select(root).where(builder.equal(root.get("name"), name));
-        TypedQuery<Customer> query = entityManager.createQuery(criteria);
-        try {
-            return Optional.of(query.getSingleResult()).get();
-        } catch (NoResultException nre){
-            return null;
-        }
-    }
-
-    private List<Delivery> all_deliveries(String delivery_date) throws Exception {
-        if(!deliverySchedule.get_deliveries().isEmpty()){
-            List<Delivery> deliveriesList = deliverySchedule.get_deliveries();
-            MyDate myDate = new MyDate(delivery_date,"00h00");
-            deliveriesList = deliveriesList.stream().filter(d->d.getDeliveryDate().equals(delivery_date)).collect(Collectors.toList());
-            deliveriesList.sort(Comparator.comparingInt(Delivery::getDeliveryBeginTimeInSeconds));
-            return deliveriesList;
-        }
-        return null;
+            Delivery delivery1 =  entityManager.find(Delivery.class,delivery.getId());
+            delivery1.setDeliveryDate(delivery_date);
+            delivery1.setDeliveryBeginTimeInSeconds(myDate.getDate_seconds());
+            entityManager.persist(delivery1);
+        }else throw  new UnvailableSlotTimeException(delivery_date,hour_delivery);
     }
 
     @Override
     public boolean valid_slot_time(String delivery_date, String hour_delivery) throws Exception {
-        List<Delivery> sorted_filtered_list = all_deliveries(delivery_date);
-        MyDate adate = new MyDate(delivery_date,hour_delivery);
+        List<Delivery> sorted_filtered_list = deliverySchedule.all_deliveries_of_theDate(delivery_date);
+        int adateseconds = new MyDate(delivery_date,hour_delivery).getDate_seconds();
         int min_slot = 45 * 60;
-        int adateseconds = adate.getDate_seconds();
-        int index_min = 0; int mine = 0;
-        int max = 0;
+
         if(sorted_filtered_list != null && !sorted_filtered_list.isEmpty()) {
             int size = sorted_filtered_list.size();
             boolean is_the_smallest = adateseconds < sorted_filtered_list.get(0).getDeliveryBeginTimeInSeconds();
             boolean is_the_biggest = adateseconds > sorted_filtered_list.get(size-1).getDeliveryBeginTimeInSeconds();
+
             if (is_the_smallest) {
                 int temp = sorted_filtered_list.get(0).getDeliveryBeginTimeInSeconds();
                 int end = adateseconds + min_slot;
@@ -116,27 +76,32 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
                 int temp = sorted_filtered_list.get(size-1).getDeliveryEndTimeInSeconds();
                 return (adateseconds - temp) >= min_slot;
             } else {
-                while (index_min < sorted_filtered_list.size()) {
-                    int temp = sorted_filtered_list.get(index_min).getDeliveryBeginTimeInSeconds();
-                    if (temp < adateseconds) {
-                        mine = sorted_filtered_list.get(index_min).getDeliveryEndTimeInSeconds();
-                    } else break;
-                    index_min++;
-                }
-                max = sorted_filtered_list.get(index_min).getDeliveryBeginTimeInSeconds();
-
-                int diff1 = adateseconds - mine;
-                int diff2 = max - (adateseconds + min_slot);
-                if (diff1 >= min_slot && diff2 >= min_slot) {
-                    validslot = true;
-                    return true;
-                }
+                return searchFreeSlotTime(sorted_filtered_list,adateseconds,min_slot);
             }
         }else{
             validslot = true;
             return true;
         }
-        return false;
-        }
-
     }
+
+    private boolean searchFreeSlotTime(List<Delivery> deliveries, int timeinseconds, int min_slot){
+        int index_min = 0; int mine = 0;
+
+        while (index_min < deliveries.size()) {
+            int temp = deliveries.get(index_min).getDeliveryBeginTimeInSeconds();
+            if (temp < timeinseconds) {
+                mine = deliveries.get(index_min).getDeliveryEndTimeInSeconds();
+            } else break;
+            index_min++;
+        }
+        int max = deliveries.get(index_min).getDeliveryBeginTimeInSeconds();
+
+        int diff1 = timeinseconds - mine;
+        int diff2 = max - (timeinseconds + min_slot);
+        if (diff1 >= min_slot && diff2 >= min_slot) {
+            validslot = true;
+            return true;
+        }
+        return false;
+    }
+}
