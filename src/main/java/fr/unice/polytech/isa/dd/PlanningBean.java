@@ -1,5 +1,6 @@
 package fr.unice.polytech.isa.dd;
 
+import fr.unice.polytech.isa.dd.Exceptions.PackageAlreadyTookException;
 import fr.unice.polytech.isa.dd.Exceptions.UnvailableSlotTimeException;
 import fr.unice.polytech.isa.dd.entities.Customer;
 import fr.unice.polytech.isa.dd.entities.Delivery;
@@ -36,12 +37,15 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     public String register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws Exception {
         Customer customer = customerFinder.findCustomerByName(name_client);
         Package aPackage = packageFinder.findPackageBySecretNumber(number_secret);
+        if(aPackage.getDeliveryDate() != null) throw new PackageAlreadyTookException(number_secret);
         MyDate dt = new MyDate(delivery_date,hour_delivery);
-        Delivery delivery = new Delivery(customer,aPackage,delivery_date,dt.getDate_seconds());
         if(validslot){
+            Delivery delivery = new Delivery(customer,aPackage,delivery_date,dt.getDate_seconds());
             customer.add_a_customer_delivery(delivery);
+            setPackageDeliveryDate(aPackage,delivery_date,hour_delivery);
             entityManager.persist(delivery);
         }else throw  new UnvailableSlotTimeException(delivery_date,hour_delivery);
+        validslot = false;
         return "Livraison Programmé";
     }
 
@@ -104,5 +108,11 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
             return true;
         }
         return false;
+    }
+
+    private void setPackageDeliveryDate(Package aPackage, String deliveryDate, String deliveryHour)  {
+        Package packageretrivied = entityManager.find(Package.class,aPackage.getId());
+        packageretrivied.setDeliveryDate(deliveryDate + " " + deliveryHour);
+        entityManager.persist(packageretrivied);
     }
 }

@@ -3,6 +3,8 @@ package arquillian;
 import fr.unice.polytech.isa.dd.AvailableSlotTime;
 import fr.unice.polytech.isa.dd.DeliveryRegistration;
 import fr.unice.polytech.isa.dd.DeliverySchedule;
+import fr.unice.polytech.isa.dd.Exceptions.PackageAlreadyTookException;
+import fr.unice.polytech.isa.dd.Exceptions.UnvailableSlotTimeException;
 import fr.unice.polytech.isa.dd.PlanningBean;
 import fr.unice.polytech.isa.dd.entities.*;
 import fr.unice.polytech.isa.dd.entities.Package;
@@ -24,6 +26,8 @@ public abstract class AbstractPlanningTest {
                 .addPackage(AvailableSlotTime.class.getPackage())
                 .addPackage(DeliveryRegistration.class.getPackage())
                 .addPackage(PlanningBean.class.getPackage())
+                .addPackage(UnvailableSlotTimeException.class.getPackage())
+                .addPackage(PackageAlreadyTookException.class.getPackage())
                 .addPackage(Delivery.class.getPackage())
                 .addPackage(Customer.class.getPackage())
                 .addPackage(Provider.class.getPackage())

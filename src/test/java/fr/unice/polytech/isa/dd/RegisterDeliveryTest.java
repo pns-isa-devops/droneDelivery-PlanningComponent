@@ -1,6 +1,8 @@
 package fr.unice.polytech.isa.dd;
 
 import arquillian.AbstractPlanningTest;
+import fr.unice.polytech.isa.dd.Exceptions.PackageAlreadyTookException;
+import fr.unice.polytech.isa.dd.Exceptions.UnvailableSlotTimeException;
 import fr.unice.polytech.isa.dd.entities.Customer;
 import fr.unice.polytech.isa.dd.entities.Delivery;
 import fr.unice.polytech.isa.dd.entities.Package;
@@ -35,7 +37,8 @@ public class RegisterDeliveryTest extends AbstractPlanningTest {
 
     private Customer customer = new Customer("Paul","where does he live");
     private Provider provider = new Provider();
-    private Package aPackage = new Package();
+    private Package aPackage1 = new Package();
+    private Package aPackage2 = new Package();
     String adate;
     String anhour;
 
@@ -48,11 +51,17 @@ public class RegisterDeliveryTest extends AbstractPlanningTest {
         provider.setName("Aug");
         entityManager.persist(provider);
 
-        aPackage.setWeight(10.0);
-        aPackage.setSecret_number("2005");
-        aPackage.setProvider(provider);
-        entityManager.persist(aPackage);
-        provider.add(aPackage);
+        aPackage1.setWeight(10.0);
+        aPackage1.setSecret_number("2005");
+        aPackage1.setProvider(provider);
+        entityManager.persist(aPackage1);
+        provider.add(aPackage1);
+
+        aPackage2.setWeight(10.0);
+        aPackage2.setSecret_number("2020");
+        aPackage2.setProvider(provider);
+        entityManager.persist(aPackage2);
+        provider.add(aPackage2);
     }
 
     @After
@@ -62,8 +71,10 @@ public class RegisterDeliveryTest extends AbstractPlanningTest {
         entityManager.merge(delivery);
         entityManager.remove(delivery);
 
-        aPackage = entityManager.merge(aPackage);
-        entityManager.remove(aPackage);
+        aPackage1 = entityManager.merge(aPackage1);
+        entityManager.remove(aPackage1);
+        aPackage2 = entityManager.merge(aPackage2);
+        entityManager.remove(aPackage2);
 
         provider = entityManager.merge(provider);
         entityManager.remove(provider);
@@ -77,9 +88,23 @@ public class RegisterDeliveryTest extends AbstractPlanningTest {
 
     @Test
     public void registertest() throws Exception {
-        System.out.println("/*********************************\n"+deliverySchedule.get_deliveries().size()+"******************\n");
         availableSlotTime.valid_slot_time(adate,anhour);
         deliveryRegistration.register_delivery("Paul","2005",adate,anhour);
         assertEquals(1,customer.getCustomer_deliveries().size());
+    }
+
+    @Test(expected = PackageAlreadyTookException.class)
+    public void registerExceptionTimeTest() throws Exception {
+        availableSlotTime.valid_slot_time(adate,anhour);
+        deliveryRegistration.register_delivery("Paul","2005",adate,anhour);
+        deliveryRegistration.register_delivery("Paul","2005",adate,anhour);
+    }
+
+    @Test(expected = UnvailableSlotTimeException.class)
+    public void registerExceptionPackageTest() throws Exception {
+        availableSlotTime.valid_slot_time(adate,anhour);
+        deliveryRegistration.register_delivery("Paul","2005",adate,anhour);
+        availableSlotTime.valid_slot_time(adate,anhour);
+        deliveryRegistration.register_delivery("Paul","2020",adate,anhour);
     }
 }
