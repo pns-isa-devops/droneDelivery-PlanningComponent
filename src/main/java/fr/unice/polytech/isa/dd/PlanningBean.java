@@ -13,6 +13,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.text.ParseException;
 import java.util.List;
 
 @Stateless(name="planning-stateless")
@@ -44,7 +45,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     }
 
     @Override
-    public String repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws UnvailableSlotTimeException, java.text.ParseException {
+    public String repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws UnvailableSlotTimeException, ParseException {
         if(validslot){
             Delivery delivery = deliverySchedule.findDeliveryByDateAndHour(old_date, old_hour);
             MyDate myDate = new MyDate(delivery_date,hour_delivery);
