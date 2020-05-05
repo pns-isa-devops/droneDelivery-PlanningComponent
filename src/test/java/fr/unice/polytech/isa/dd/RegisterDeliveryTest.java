@@ -1,8 +1,8 @@
 package fr.unice.polytech.isa.dd;
 
 import arquillian.AbstractPlanningTest;
-import fr.unice.polytech.isa.dd.Exceptions.PackageAlreadyTookException;
-import fr.unice.polytech.isa.dd.Exceptions.UnvailableSlotTimeException;
+import fr.unice.polytech.isa.dd.exceptions.PackageAlreadyTookException;
+import fr.unice.polytech.isa.dd.exceptions.UnvailableSlotTimeException;
 import fr.unice.polytech.isa.dd.entities.Customer;
 import fr.unice.polytech.isa.dd.entities.Delivery;
 import fr.unice.polytech.isa.dd.entities.Package;

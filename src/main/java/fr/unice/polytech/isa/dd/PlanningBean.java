@@ -1,25 +1,19 @@
 package fr.unice.polytech.isa.dd;
 
-import fr.unice.polytech.isa.dd.Exceptions.PackageAlreadyTookException;
-import fr.unice.polytech.isa.dd.Exceptions.UnvailableSlotTimeException;
+import fr.unice.polytech.isa.dd.exceptions.PackageAlreadyTookException;
+import fr.unice.polytech.isa.dd.exceptions.UnvailableSlotTimeException;
 import fr.unice.polytech.isa.dd.entities.Customer;
 import fr.unice.polytech.isa.dd.entities.Delivery;
 import fr.unice.polytech.isa.dd.entities.Package;
+import fr.unice.polytech.isa.dd.exceptions.UnknownCustomerException;
+import fr.unice.polytech.isa.dd.exceptions.UnknownPackageException;
 import utils.MyDate;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Stateless(name="planning-stateless")
 public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
@@ -34,7 +28,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     private boolean validslot = false;
 
     @Override
-    public String register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws Exception {
+    public String register_delivery(String name_client, String number_secret, String delivery_date, String hour_delivery) throws PackageAlreadyTookException, UnvailableSlotTimeException, UnknownCustomerException, UnknownPackageException , java.text.ParseException {
         Customer customer = customerFinder.findCustomerByName(name_client);
         Package aPackage = packageFinder.findPackageBySecretNumber(number_secret);
         if(aPackage.getDeliveryDate() != null) throw new PackageAlreadyTookException(number_secret);
@@ -50,7 +44,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     }
 
     @Override
-    public String repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws Exception {
+    public String repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws UnvailableSlotTimeException, java.text.ParseException {
         if(validslot){
             Delivery delivery = deliverySchedule.findDeliveryByDateAndHour(old_date, old_hour);
             MyDate myDate = new MyDate(delivery_date,hour_delivery);
@@ -63,7 +57,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
     }
 
     @Override
-    public Boolean valid_slot_time(String delivery_date, String hour_delivery) throws Exception {
+    public Boolean valid_slot_time(String delivery_date, String hour_delivery) throws  java.text.ParseException {
         List<Delivery> sorted_filtered_list = deliverySchedule.all_deliveries_of_theDate(delivery_date);
         int adateseconds = new MyDate(delivery_date,hour_delivery).getDate_seconds();
         int min_slot = 45 * 60;

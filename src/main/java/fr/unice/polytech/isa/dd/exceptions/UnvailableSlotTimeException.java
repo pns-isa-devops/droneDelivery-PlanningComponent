@@ -1,4 +1,4 @@
-package fr.unice.polytech.isa.dd.Exceptions;
+package fr.unice.polytech.isa.dd.exceptions;
 
 
 import javax.xml.ws.WebFault;
