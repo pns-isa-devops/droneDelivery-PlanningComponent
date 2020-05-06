@@ -34,6 +34,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
         Package aPackage = packageFinder.findPackageBySecretNumber(number_secret);
         if(aPackage.getDeliveryDate() != null) throw new PackageAlreadyTookException(number_secret);
         MyDate dt = new MyDate(delivery_date,hour_delivery);
+        validslot = valid_slot_time(delivery_date,hour_delivery);
         if(validslot){
             Delivery delivery = new Delivery(customer,aPackage,delivery_date,dt.getDate_seconds());
             customer.add_a_customer_delivery(delivery);
@@ -46,6 +47,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
 
     @Override
     public String repogramming_delivery(String old_date, String old_hour, String delivery_date, String hour_delivery) throws UnvailableSlotTimeException, ParseException {
+        validslot = valid_slot_time(delivery_date,hour_delivery);
         if(validslot){
             Delivery delivery = deliverySchedule.findDeliveryByDateAndHour(old_date, old_hour);
             MyDate myDate = new MyDate(delivery_date,hour_delivery);
@@ -79,7 +81,6 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
                 return searchFreeSlotTime(sorted_filtered_list,adateseconds,min_slot);
             }
         }else{
-            validslot = true;
             return true;
         }
     }
@@ -98,11 +99,7 @@ public class PlanningBean implements DeliveryRegistration, AvailableSlotTime {
 
         int diff1 = timeinseconds - mine;
         int diff2 = max - (timeinseconds + min_slot);
-        if (diff1 >= min_slot && diff2 >= min_slot) {
-            validslot = true;
-            return true;
-        }
-        return false;
+        return diff1 >= min_slot && diff2 >= min_slot;
     }
 
     private void setPackageDeliveryDate(Package aPackage, String deliveryDate, String deliveryHour)  {
