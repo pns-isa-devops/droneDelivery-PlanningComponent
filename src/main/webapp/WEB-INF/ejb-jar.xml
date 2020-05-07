@@ -4,22 +4,35 @@
          xsi:schemaLocation = "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_0.xsd">
   <interceptors>
     <interceptor>
-      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.DateVerifierForValidSlot</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.dateinterceptors.DateVerifierForValidSlot</interceptor-class>
     </interceptor>
     <interceptor>
-      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.DateVerifierForReschedule</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.dateinterceptors.DateVerifierForReschedule</interceptor-class>
     </interceptor>
     <interceptor>
-      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.DateVerifierForRegister</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.dateinterceptors.DateVerifierForRegister</interceptor-class>
+    </interceptor>
+    <interceptor>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.hourinterceptors.HourVerifierForRegister</interceptor-class>
+    </interceptor>
+    <interceptor>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.hourinterceptors.HourVerifierForValidSlot</interceptor-class>
+    </interceptor>
+    <interceptor>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.hourinterceptors.HourVerifierReschedule</interceptor-class>
     </interceptor>
   </interceptors>
 
   <assembly-descriptor>
     <interceptor-binding>
       <ejb-name>*</ejb-name>
-      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.DateVerifierForValidSlot</interceptor-class>
-      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.DateVerifierForReschedule</interceptor-class>
-      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.DateVerifierForRegister</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.dateinterceptors.DateVerifierForValidSlot</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.dateinterceptors.DateVerifierForReschedule</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.dateinterceptors.DateVerifierForRegister</interceptor-class>
+
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.hourinterceptors.HourVerifierReschedule</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.hourinterceptors.HourVerifierForValidSlot</interceptor-class>
+      <interceptor-class>fr.unice.polytech.isa.dd.interceptors.hourinterceptors.HourVerifierForRegister</interceptor-class>
     </interceptor-binding>
   </assembly-descriptor>
 </ejb-jar>

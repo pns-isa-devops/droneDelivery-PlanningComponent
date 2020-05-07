@@ -1,9 +1,7 @@
-package fr.unice.polytech.isa.dd.interceptors;
+package fr.unice.polytech.isa.dd.interceptors.dateinterceptors;
 
 import javax.interceptor.AroundInvoke;
 import javax.interceptor.InvocationContext;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 public class DateVerifierForRegister extends DateVerifier{
 
