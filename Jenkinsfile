@@ -7,7 +7,9 @@ pipeline {
     stages {
         stage ('Build and Deploy') {
             steps {
-                sh 'mvn clean package deploy'
+            configFileProvider([configFile(fileId: 'Maven_settings.xml', variable: 'MAVEN_GLOBAL_SETTINGS')]){
+                            sh 'mvn -gs $MAVEN_GLOBAL_SETTINGS clean package deploy'
+                            }
             }
         }
     }
